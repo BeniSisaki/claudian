@@ -37,7 +37,10 @@ export interface ModosSseEvent {
 export class ModosHttpClient {
   constructor(
     private readonly connection: ModosServeConnection,
-    private readonly fetchImpl: typeof fetch = fetch,
+    // The global fetch must be invoked with `window` as receiver in
+    // Obsidian's renderer; calling an unbound reference throws
+    // "Illegal invocation". Wrap it instead of storing it bare.
+    private readonly fetchImpl: typeof fetch = (...args) => fetch(...args),
   ) {}
 
   get baseUrl(): string {

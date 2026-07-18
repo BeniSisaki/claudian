@@ -146,6 +146,9 @@ export class ModosServeManager {
       '--data-dir', launch.dataDir,
       '--approval-policy', launch.approvalPolicy,
       '--sandbox-mode', launch.sandboxMode,
+      // The JSONL file backend avoids loading better-sqlite3, whose ABI must
+      // match the spawning Node (Obsidian's Electron Node ≠ system Node).
+      '--storage-backend', 'file',
     ];
     const env = {
       ...process.env,
