@@ -6,7 +6,33 @@
 
 ![Preview](assets/Preview.png)
 
+> **This is a fork of [YishenTu/claudian](https://github.com/YishenTu/claudian) (MIT) with an additional native MODOS provider.** Everything else is upstream Claudian. See [Modos provider (fork addition)](#modos-provider-fork-addition) below.
+
 An Obsidian plugin that embeds AI coding agents (Claude Code, Codex, Opencode, Pi, and more to come) in your vault. Your vault becomes the agent's working directory — file read/write, search, bash, and multi-step workflows all work out of the box.
+
+## Modos provider (fork addition)
+
+This fork adds a **Modos** provider that drives the [MODOS](https://github.com/HUPUHUY/Kun) agent runtime (`modos serve`) over its local HTTP + SSE API — the same runtime that powers the MODOS desktop app.
+
+What you get compared to driving MODOS through the Pi provider (`modos rpc`):
+
+- **Full two-way integration** — tool approvals and structured user-input prompts are answerable in the chat UI (they round-trip through `/v1/approvals` and `/v1/user-inputs`).
+- **Native history** — conversations resume from MODOS threads (`providerState.threadId`); fork and rewind map to `/v1/threads/:id/fork` and `/rewind`.
+- **Live streaming** — SSE event stream with cursor reconnect, replay-overflow recovery, thinking deltas, tool calls, usage stats, and context compaction notices.
+- **Shared serve process** — one `modos serve` child per vault, launched with a per-launch runtime token (env-only, never in argv), restarted automatically when launch settings change.
+
+### Setup
+
+1. Install the MODOS CLI: from the [Kun repo](https://github.com/HUPUHUY/Kun) run `cd modos && npm run build && npm link` (or point the CLI path setting at a wrapper for `node modos/dist/cli/serve-entry.js`).
+2. Install this plugin from source or release: copy `main.js`, `manifest.json`, `styles.css` into `<vault>/.obsidian/plugins/claudian-modos/`, then enable **Claudian (Modos)** in Obsidian.
+3. Open Settings → Claudian → **Modos** tab: enable the provider, set the CLI path if `modos` is not on PATH, and add provider environment variables (e.g. `DEEPSEEK_API_KEY`, `MODOS_MODEL`, `MODOS_BASE_URL`).
+4. Click **Discover** to launch the runtime and read the configured model, then chat in the sidebar.
+
+### Notes and limitations
+
+- Approval policy / sandbox mode are plugin settings passed to `modos serve` at launch; `Ask before tools` surfaces approvals inline in chat.
+- v1: model listing reports the runtime's configured default model; extension-routed providers, plan mode, and MCP server selection are not wired yet.
+- The auxiliary services (title generation, inline edit, instruction refine) run through one-shot `modos run` processes, independent from the shared serve process.
 
 ## Features & Usage
 

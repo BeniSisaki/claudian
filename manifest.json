@@ -1,9 +1,9 @@
 {
-  "id": "realclaudian",
-  "name": "Claudian",
+  "id": "claudian-modos",
+  "name": "Claudian (Modos)",
   "version": "2.0.39",
   "minAppVersion": "1.7.2",
-  "description": "Embeds Claude Code, Codex, and other coding agents as AI collaborators in your vault. Your vault becomes their working directory, giving them capabilities for file reads and writes, search, bash commands, and multi-step workflows.",
+  "description": "Claudian fork with a native MODOS provider: embeds the MODOS runtime (modos serve) as an AI collaborator in your vault over its local HTTP + SSE API. Also keeps the original Claude Code, Codex, OpenCode, and Pi providers.",
   "author": "Yishen Tu",
   "authorUrl": "https://github.com/YishenTu",
   "isDesktopOnly": true
