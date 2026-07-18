@@ -95,3 +95,6 @@ CLAUDE.local.md
 
 .claude/
 .codex/
+
+# Smoke bundle (generated from scripts/modos-smoke.ts)
+scripts/modos-smoke.mjs

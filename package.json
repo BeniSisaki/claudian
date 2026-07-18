@@ -21,7 +21,8 @@
     "test:watch": "node scripts/run-jest.js --watch",
     "test:coverage": "node scripts/run-jest.js --coverage",
     "preversion": "bun install --frozen-lockfile",
-    "version": "node scripts/sync-version.js && git add manifest.json"
+    "version": "node scripts/sync-version.js && git add manifest.json",
+    "smoke:modos": "esbuild scripts/modos-smoke.ts --bundle --platform=node --target=node18 --format=esm --external:obsidian --outfile=scripts/modos-smoke.mjs && node scripts/modos-smoke.mjs"
   },
   "keywords": [
     "claude-code",
