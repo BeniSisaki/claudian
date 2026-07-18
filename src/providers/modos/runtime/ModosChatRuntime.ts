@@ -142,9 +142,16 @@ export class ModosChatRuntime implements ChatRuntime {
 
   async ensureReady(options?: ChatRuntimeEnsureReadyOptions): Promise<boolean> {
     try {
-      if (!this.connection) {
-        this.connection = await this.serveManager.ensureReady();
-        this.client = new ModosHttpClient(this.connection);
+      // Always re-resolve: every serve (re)launch gets a fresh port and
+      // token, so a cached connection from a previous process is dead.
+      const connection = await this.serveManager.ensureReady();
+      if (
+        !this.connection
+        || this.connection.baseUrl !== connection.baseUrl
+        || this.connection.token !== connection.token
+      ) {
+        this.connection = connection;
+        this.client = new ModosHttpClient(connection);
       }
       if (this.forkSource) {
         await this.materializePendingFork();
