@@ -441,6 +441,70 @@
       },
       "header": "Codex Subagents",
       "noAgents": "No Codex subagents in vault. Click + to create one."
+    },
+    "modos": {
+      "enable": {
+        "name": "Enable Modos",
+        "desc": "Launch `modos serve` and chat over its local HTTP + SSE runtime."
+      },
+      "cliPath": {
+        "name": "CLI path",
+        "desc": "Optional absolute path to the Modos CLI for this computer. Leave empty to use `modos` from PATH.",
+        "placeholderWindows": "C:UsersyouAppDataRoaming\npmmodos.cmd",
+        "placeholderUnix": "/usr/local/bin/modos"
+      },
+      "dataDir": {
+        "name": "Data directory",
+        "desc": "Optional MODOS data dir override (threads, sessions, usage). Leave empty for the default `~/.modos/data`.",
+        "placeholder": "~/.modos/data"
+      },
+      "approvalPolicy": {
+        "name": "Approval policy",
+        "desc": "How tool approvals behave. `Ask before tools` surfaces approvals in chat.",
+        "options": {
+          "on-request": "Ask before tools",
+          "auto": "Auto-approve",
+          "untrusted": "Untrusted",
+          "never": "Never ask",
+          "always": "Always ask",
+          "suggest": "Suggest"
+        }
+      },
+      "sandboxMode": {
+        "name": "Sandbox mode",
+        "desc": "Filesystem sandbox applied to the Modos runtime.",
+        "options": {
+          "workspace-write": "Workspace write",
+          "read-only": "Read only",
+          "danger-full-access": "Full access",
+          "external-sandbox": "External sandbox"
+        }
+      },
+      "models": {
+        "heading": "Models",
+        "visible": "Visible models",
+        "visibleSome": "Discovered from the Modos runtime: {models}",
+        "visibleNone": "No models discovered yet. Click Discover to launch modos serve and read the configured model.",
+        "discover": "Discover",
+        "discovering": "Discovering…",
+        "discovered": "Discovered: {models}",
+        "noneFound": "Modos serve is running but reported no model.",
+        "failed": "Discovery failed: {error}"
+      },
+      "runtime": {
+        "heading": "Runtime",
+        "running": "modos serve is running on {url}.",
+        "notRunning": "modos serve is not running yet. It starts on the first chat turn or Discover click.",
+        "restart": "Restart",
+        "restartDesc": "Stops the shared modos serve process. It relaunches on the next chat turn.",
+        "stopped": "Modos serve stopped. It relaunches on the next chat turn."
+      },
+      "env": {
+        "heading": "Environment",
+        "name": "Modos environment variables",
+        "desc": "Environment variables passed only to Modos (e.g. `DEEPSEEK_API_KEY`, `MODOS_MODEL`).",
+        "placeholder": "DEEPSEEK_API_KEY=sk-..."
+      }
     }
   }
 }

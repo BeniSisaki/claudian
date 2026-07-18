@@ -2,6 +2,7 @@ import { Setting } from 'obsidian';
 
 import { ProviderSettingsCoordinator } from '../../../core/providers/ProviderSettingsCoordinator';
 import type { ProviderSettingsTabRenderer } from '../../../core/providers/types';
+import { t } from '../../../i18n/i18n';
 import { renderEnvironmentSettingsSection } from '../../../shared/settings/EnvironmentSettingsSection';
 import { getHostnameKey } from '../../../utils/env';
 import { maybeGetModosWorkspaceServices } from '../app/ModosWorkspaceServices';
@@ -16,11 +17,11 @@ export const modosSettingsTabRenderer: ProviderSettingsTabRenderer = {
     const hostnameKey = getHostnameKey();
     const workspace = maybeGetModosWorkspaceServices();
 
-    new Setting(container).setName('Setup').setHeading();
+    new Setting(container).setName(t('settings.setup')).setHeading();
 
     new Setting(container)
-      .setName('Enable Modos')
-      .setDesc('Launch `modos serve` and chat over its local HTTP + SSE runtime.')
+      .setName(t('settings.modos.enable.name'))
+      .setDesc(t('settings.modos.enable.desc'))
       .addToggle((toggle) =>
         toggle
           .setValue(modosSettings.enabled)
@@ -51,15 +52,13 @@ export const modosSettingsTabRenderer: ProviderSettingsTabRenderer = {
     };
 
     new Setting(container)
-      .setName('CLI path')
-      .setDesc(
-        'Optional absolute path to the Modos CLI for this computer. Leave empty to use `modos` from PATH.',
-      )
+      .setName(t('settings.modos.cliPath.name'))
+      .setDesc(t('settings.modos.cliPath.desc'))
       .addText((text) => {
         text
           .setPlaceholder(process.platform === 'win32'
-            ? 'C:\\Users\\you\\AppData\\Roaming\\npm\\modos.cmd'
-            : '/usr/local/bin/modos')
+            ? t('settings.modos.cliPath.placeholderWindows')
+            : t('settings.modos.cliPath.placeholderUnix'))
           .setValue(modosSettings.cliPathsByHost[hostnameKey] || '')
           .onChange((value) => {
             void persistCliPath(value);
@@ -67,13 +66,11 @@ export const modosSettingsTabRenderer: ProviderSettingsTabRenderer = {
       });
 
     new Setting(container)
-      .setName('Data directory')
-      .setDesc(
-        'Optional MODOS data dir override (threads, sessions, usage). Leave empty for the default `~/.modos/data`.',
-      )
+      .setName(t('settings.modos.dataDir.name'))
+      .setDesc(t('settings.modos.dataDir.desc'))
       .addText((text) => {
         text
-          .setPlaceholder('~/.modos/data')
+          .setPlaceholder(t('settings.modos.dataDir.placeholder'))
           .setValue(modosSettings.dataDir)
           .onChange(async (value) => {
             await context.plugin.mutateSettings((settings) => {
@@ -83,17 +80,17 @@ export const modosSettingsTabRenderer: ProviderSettingsTabRenderer = {
       });
 
     new Setting(container)
-      .setName('Approval policy')
-      .setDesc('How tool approvals behave. `Ask before tools` surfaces approvals in chat.')
+      .setName(t('settings.modos.approvalPolicy.name'))
+      .setDesc(t('settings.modos.approvalPolicy.desc'))
       .addDropdown((dropdown) =>
         dropdown
           .addOptions({
-            'on-request': 'Ask before tools',
-            auto: 'Auto-approve',
-            untrusted: 'Untrusted',
-            never: 'Never ask',
-            always: 'Always ask',
-            suggest: 'Suggest',
+            'on-request': t('settings.modos.approvalPolicy.options.on-request'),
+            auto: t('settings.modos.approvalPolicy.options.auto'),
+            untrusted: t('settings.modos.approvalPolicy.options.untrusted'),
+            never: t('settings.modos.approvalPolicy.options.never'),
+            always: t('settings.modos.approvalPolicy.options.always'),
+            suggest: t('settings.modos.approvalPolicy.options.suggest'),
           })
           .setValue(modosSettings.approvalPolicy)
           .onChange(async (value) => {
@@ -106,15 +103,15 @@ export const modosSettingsTabRenderer: ProviderSettingsTabRenderer = {
       );
 
     new Setting(container)
-      .setName('Sandbox mode')
-      .setDesc('Filesystem sandbox applied to the Modos runtime.')
+      .setName(t('settings.modos.sandboxMode.name'))
+      .setDesc(t('settings.modos.sandboxMode.desc'))
       .addDropdown((dropdown) =>
         dropdown
           .addOptions({
-            'workspace-write': 'Workspace write',
-            'read-only': 'Read only',
-            'danger-full-access': 'Full access',
-            'external-sandbox': 'External sandbox',
+            'workspace-write': t('settings.modos.sandboxMode.options.workspace-write'),
+            'read-only': t('settings.modos.sandboxMode.options.read-only'),
+            'danger-full-access': t('settings.modos.sandboxMode.options.danger-full-access'),
+            'external-sandbox': t('settings.modos.sandboxMode.options.external-sandbox'),
           })
           .setValue(modosSettings.sandboxMode)
           .onChange(async (value) => {
@@ -126,58 +123,70 @@ export const modosSettingsTabRenderer: ProviderSettingsTabRenderer = {
           })
       );
 
-    new Setting(container).setName('Models').setHeading();
+    new Setting(container).setName(t('settings.modos.models.heading')).setHeading();
 
     const statusEl = container.createDiv({ cls: 'claudian-modos-runtime-status' });
     const discovered = modosSettings.discoveredModels;
     new Setting(container)
-      .setName('Visible models')
+      .setName(t('settings.modos.models.visible'))
       .setDesc(
         discovered.length > 0
-          ? `Discovered from the Modos runtime: ${discovered.map((model) => model.label).join(', ')}`
-          : 'No models discovered yet. Click Discover to launch modos serve and read the configured model.',
+          ? t('settings.modos.models.visibleSome', {
+            models: discovered.map((model) => model.label).join(', '),
+          })
+          : t('settings.modos.models.visibleNone'),
       )
       .addButton((button) =>
         button
-          .setButtonText('Discover')
+          .setButtonText(t('settings.modos.models.discover'))
           .onClick(async () => {
-            button.setDisabled(true).setButtonText('Discovering…');
+            button
+              .setDisabled(true)
+              .setButtonText(t('settings.modos.models.discovering'));
             try {
               const result = await new ModosModelDiscoveryService(context.plugin).discoverModels();
               statusEl.setText(
                 result.kind === 'completed'
                   ? result.models.length > 0
-                    ? `Discovered: ${result.models.map((model) => model.label).join(', ')}`
-                    : 'Modos serve is running but reported no model.'
-                  : `Discovery failed: ${result.diagnostics ?? 'unknown error'}`,
+                    ? t('settings.modos.models.discovered', {
+                      models: result.models.map((model) => model.label).join(', '),
+                    })
+                    : t('settings.modos.models.noneFound')
+                  : t('settings.modos.models.failed', {
+                    error: result.diagnostics ?? 'unknown error',
+                  }),
               );
               context.refreshModelSelectors();
             } finally {
-              button.setDisabled(false).setButtonText('Discover');
+              button
+                .setDisabled(false)
+                .setButtonText(t('settings.modos.models.discover'));
             }
           })
       );
 
-    new Setting(container).setName('Runtime').setHeading();
+    new Setting(container).setName(t('settings.modos.runtime.heading')).setHeading();
 
     const serveManager = workspace?.serveManager;
     statusEl.setText(
       serveManager?.isRunning()
-        ? `modos serve is running on ${serveManager.getConnection()?.baseUrl ?? 'loopback'}.`
-        : 'modos serve is not running yet. It starts on the first chat turn or Discover click.',
+        ? t('settings.modos.runtime.running', {
+          url: serveManager.getConnection()?.baseUrl ?? 'loopback',
+        })
+        : t('settings.modos.runtime.notRunning'),
     );
 
     new Setting(container)
-      .setName('Restart runtime')
-      .setDesc('Stops the shared Modos serve process. It relaunches on the next chat turn.')
+      .setName(t('settings.modos.runtime.restart'))
+      .setDesc(t('settings.modos.runtime.restartDesc'))
       .addButton((button) =>
         button
-          .setButtonText('Restart')
+          .setButtonText(t('settings.modos.runtime.restart'))
           .onClick(async () => {
             button.setDisabled(true);
             try {
               await serveManager?.shutdown();
-              statusEl.setText('Modos serve stopped. It relaunches on the next chat turn.');
+              statusEl.setText(t('settings.modos.runtime.stopped'));
             } finally {
               button.setDisabled(false);
             }
@@ -186,10 +195,10 @@ export const modosSettingsTabRenderer: ProviderSettingsTabRenderer = {
 
     renderEnvironmentSettingsSection({
       container,
-      desc: 'Environment variables passed only to Modos (e.g. `DEEPSEEK_API_KEY`, `MODOS_MODEL`).',
-      heading: 'Environment',
-      name: 'Modos environment variables',
-      placeholder: 'DEEPSEEK_API_KEY=sk-...',
+      desc: t('settings.modos.env.desc'),
+      heading: t('settings.modos.env.heading'),
+      name: t('settings.modos.env.name'),
+      placeholder: t('settings.modos.env.placeholder'),
       plugin: context.plugin,
       scope: 'provider:modos',
     });

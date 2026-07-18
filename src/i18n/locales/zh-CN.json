@@ -441,6 +441,70 @@
       },
       "header": "Codex 子代理",
       "noAgents": "Vault 中没有 Codex 子代理。点击 + 创建一个。"
+    },
+    "modos": {
+      "enable": {
+        "name": "启用 Modos",
+        "desc": "启动 `modos serve`，通过本地 HTTP + SSE 运行时进行对话。"
+      },
+      "cliPath": {
+        "name": "CLI 路径",
+        "desc": "本机 Modos CLI 的绝对路径（可选）。留空则使用 PATH 中的 `modos`。",
+        "placeholderWindows": "C:UsersyouAppDataRoaming\npmmodos.cmd",
+        "placeholderUnix": "/usr/local/bin/modos"
+      },
+      "dataDir": {
+        "name": "数据目录",
+        "desc": "自定义 MODOS 数据目录（线程、会话、用量）。留空使用默认 `~/.modos/data`。",
+        "placeholder": "~/.modos/data"
+      },
+      "approvalPolicy": {
+        "name": "审批策略",
+        "desc": "工具审批的行为方式。`工具前询问` 会在聊天中弹出审批。",
+        "options": {
+          "on-request": "工具前询问",
+          "auto": "自动批准",
+          "untrusted": "不信任时询问",
+          "never": "从不询问",
+          "always": "总是询问",
+          "suggest": "建议时询问"
+        }
+      },
+      "sandboxMode": {
+        "name": "沙箱模式",
+        "desc": "应用于 Modos 运行时的文件系统沙箱。",
+        "options": {
+          "workspace-write": "工作区可写",
+          "read-only": "只读",
+          "danger-full-access": "完全访问",
+          "external-sandbox": "外部沙箱"
+        }
+      },
+      "models": {
+        "heading": "模型",
+        "visible": "可见模型",
+        "visibleSome": "从 Modos 运行时发现：{models}",
+        "visibleNone": "尚未发现模型。点击「发现」启动 modos serve 并读取已配置的模型。",
+        "discover": "发现",
+        "discovering": "发现中…",
+        "discovered": "已发现：{models}",
+        "noneFound": "modos serve 正在运行，但未报告任何模型。",
+        "failed": "发现失败：{error}"
+      },
+      "runtime": {
+        "heading": "运行时",
+        "running": "modos serve 正在 {url} 上运行。",
+        "notRunning": "modos serve 尚未运行。首次对话或点击「发现」时启动。",
+        "restart": "重启",
+        "restartDesc": "停止共享的 modos serve 进程，下一次对话时自动重新启动。",
+        "stopped": "modos serve 已停止，下一次对话时将重新启动。"
+      },
+      "env": {
+        "heading": "环境变量",
+        "name": "Modos 环境变量",
+        "desc": "仅传递给 Modos 的环境变量（如 `DEEPSEEK_API_KEY`、`MODOS_MODEL`）。",
+        "placeholder": "DEEPSEEK_API_KEY=sk-..."
+      }
     }
   }
 }
