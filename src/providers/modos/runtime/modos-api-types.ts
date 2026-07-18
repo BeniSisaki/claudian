@@ -185,6 +185,12 @@ export interface ModosRuntimeInfo {
   approvalPolicy?: string;
   sandboxMode?: string;
   dataDir: string;
+  /** Sanitized configured provider routes (id/kind/endpointFormat only). */
+  providers?: Array<{
+    id: string;
+    kind?: 'http' | 'agent-sdk';
+    endpointFormat?: string;
+  }>;
 }
 
 export interface ModosStartTurnResponse {

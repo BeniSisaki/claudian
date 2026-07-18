@@ -10,9 +10,9 @@ export type ModosModelDiscoveryResult =
   | { kind: 'failed'; diagnostics: string; models: ModosDiscoveredModel[] };
 
 /**
- * Discovers what the MODOS runtime can serve. v1 reports the runtime's
- * configured default model (from `/v1/runtime/info`); extension-provided
- * models are appended later once account binding is designed.
+ * Discovers what the MODOS runtime can serve: the configured default model
+ * plus every configured provider route from `/v1/runtime/info` (sanitized
+ * by the runtime — no credentials ever cross this API).
  */
 export class ModosModelDiscoveryService {
   constructor(private readonly plugin: ProviderHost) {}
@@ -40,6 +40,23 @@ export class ModosModelDiscoveryService {
           id,
           label: id,
           provider: 'modos',
+        });
+      }
+
+      // Configured provider routes (sanitized by the runtime): offer each
+      // one as a selectable model routed through its provider id. The model
+      // id defaults to the provider id, matching how coding-plan providers
+      // (qianfan/kimi/...) name their entries.
+      for (const provider of info.providers ?? []) {
+        const providerId = provider.id.trim();
+        if (!providerId) {
+          continue;
+        }
+        models.push({
+          encodedId: encodeModosModelId(providerId, providerId),
+          id: providerId,
+          label: providerId,
+          provider: providerId,
         });
       }
 
