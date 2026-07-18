@@ -377,7 +377,7 @@ export class EnvSnippetManager {
     });
 
     this.onContextLimitsChange?.();
-    const view = this.plugin.app.workspace.getLeavesOfType('claudian-view')[0]?.view as {
+    const view = this.plugin.app.workspace.getLeavesOfType('claudian-modos-view')[0]?.view as {
       refreshModelSelector?(): void;
     } | undefined;
     view?.refreshModelSelector?.();
