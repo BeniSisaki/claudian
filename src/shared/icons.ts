@@ -110,6 +110,21 @@ export const PI_PROVIDER_ICON: ProviderIconSvg = {
   ],
 };
 
+export const MODOS_PROVIDER_ICON: ProviderIconSvg = {
+  kind: 'composite',
+  viewBox: '0 0 24 24',
+  children: [
+    {
+      tag: 'path',
+      attributes: {
+        d: 'M4 20V4l6.5 9L14 8l6 12h-4l-4-6.5L9.5 18 7 14.5V20H4Z',
+        fill: 'currentColor',
+        'fill-rule': 'evenodd',
+      },
+    },
+  ],
+};
+
 export interface CreateProviderIconSvgOptions {
   className?: string;
   dataProvider?: string;
