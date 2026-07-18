@@ -98,3 +98,6 @@ CLAUDE.local.md
 
 # Smoke bundle (generated from scripts/modos-smoke.ts)
 scripts/modos-smoke.mjs
+
+# Local install package staging
+dist-plugin/
