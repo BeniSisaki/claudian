@@ -46,10 +46,12 @@ export class ModosModelDiscoveryService {
       // Configured provider routes (sanitized by the runtime): offer each
       // one as a selectable model routed through its provider id. The model
       // id defaults to the provider id, matching how coding-plan providers
-      // (qianfan/kimi/...) name their entries.
+      // (qianfan/kimi/...) name their entries. Skip the provider that backs
+      // the default model — the default entry above already covers it.
+      const defaultModelId = info.model?.trim() ?? '';
       for (const provider of info.providers ?? []) {
         const providerId = provider.id.trim();
-        if (!providerId) {
+        if (!providerId || providerId === defaultModelId) {
           continue;
         }
         models.push({
