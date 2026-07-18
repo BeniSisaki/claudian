@@ -8,13 +8,14 @@ import {
   decodeModosModelId,
   findModosModel,
   isModosModelSelectionId,
+  MODOS_SYNTHETIC_MODEL_ID,
   type ModosDiscoveredModel,
 } from '../models';
 import { getModosProviderSettings, updateModosProviderSettings } from '../settings';
 
 const DEFAULT_CONTEXT_WINDOW = 200_000;
 const FALLBACK_MODEL_OPTION: ProviderUIOption = {
-  value: '',
+  value: MODOS_SYNTHETIC_MODEL_ID,
   label: 'Modos',
   description: 'Runtime default model',
 };
@@ -54,7 +55,9 @@ export const modosChatUIConfig: ProviderChatUIConfig = {
   },
 
   ownsModel(model: string): boolean {
-    return model === '' || isModosModelSelectionId(model);
+    // Never claim the empty/unknown model: the global router falls back to
+    // the default provider for those, and claiming them would hijack it.
+    return model === MODOS_SYNTHETIC_MODEL_ID || isModosModelSelectionId(model);
   },
 
   isAdaptiveReasoningModel(): boolean {
@@ -88,7 +91,7 @@ export const modosChatUIConfig: ProviderChatUIConfig = {
   },
 
   isDefaultModel(model: string): boolean {
-    return model === '' || isModosModelSelectionId(model);
+    return model === MODOS_SYNTHETIC_MODEL_ID || isModosModelSelectionId(model);
   },
 
   applyModelDefaults(model: string, settings: unknown): void {
@@ -102,7 +105,7 @@ export const modosChatUIConfig: ProviderChatUIConfig = {
   },
 
   normalizeModelVariant(model: string): string {
-    return isModosModelSelectionId(model) ? model : '';
+    return model === MODOS_SYNTHETIC_MODEL_ID || isModosModelSelectionId(model) ? model : '';
   },
 
   getCustomModelIds(): Set<string> {

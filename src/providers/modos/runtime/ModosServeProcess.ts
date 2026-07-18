@@ -1,13 +1,13 @@
-import { spawn, type ChildProcessByStdio } from 'node:child_process';
+import { type ChildProcessByStdio,spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { createServer } from 'node:net';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import type { Readable } from 'node:stream';
 
+import { getRuntimeEnvironmentText } from '../../../core/providers/providerEnvironment';
 import type { ProviderHost } from '../../../core/providers/ProviderHost';
 import type { ProviderCliResolver } from '../../../core/providers/types';
-import { getRuntimeEnvironmentText } from '../../../core/providers/providerEnvironment';
 import { parseEnvironmentVariables } from '../../../utils/env';
 import {
   resolveWindowsCmdShimSpawnSpec,
@@ -111,16 +111,16 @@ export class ModosServeManager {
     }
 
     await new Promise<void>((resolve) => {
-      let killTimer: ReturnType<typeof setTimeout> | null = null;
-      let finalTimer: ReturnType<typeof setTimeout> | null = null;
+      let killTimer: number | null = null;
+      let finalTimer: number | null = null;
       const onClose = () => {
-        if (killTimer) clearTimeout(killTimer);
-        if (finalTimer) clearTimeout(finalTimer);
+        if (killTimer) window.clearTimeout(killTimer);
+        if (finalTimer) window.clearTimeout(finalTimer);
         resolve();
       };
-      killTimer = setTimeout(() => {
+      killTimer = window.setTimeout(() => {
         terminateSpawnedProcess(proc, 'SIGKILL', spawn, this.resolvedSpawnSpec);
-        finalTimer = setTimeout(onClose, SIGKILL_TIMEOUT_MS);
+        finalTimer = window.setTimeout(onClose, SIGKILL_TIMEOUT_MS);
       }, SIGKILL_TIMEOUT_MS);
       proc.once('exit', onClose);
       terminateSpawnedProcess(proc, 'SIGTERM', spawn, this.resolvedSpawnSpec);
@@ -223,7 +223,7 @@ export class ModosServeManager {
       } catch (error) {
         lastError = error;
       }
-      await new Promise((resolve) => setTimeout(resolve, HEALTH_POLL_INTERVAL_MS));
+      await new Promise((resolve) => window.setTimeout(resolve, HEALTH_POLL_INTERVAL_MS));
     }
 
     throw new Error(

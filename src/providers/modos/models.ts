@@ -22,6 +22,8 @@ export interface DecodedModosModelId {
 
 export const MODOS_MODEL_PREFIX = 'modos/';
 export const MODOS_DEFAULT_PROVIDER_ID = 'modos';
+/** Synthetic selection shown when the runtime model list has not been discovered yet. */
+export const MODOS_SYNTHETIC_MODEL_ID = 'modos';
 
 export function encodeModosModelId(modelId: string, providerId?: string): string {
   const normalizedModel = modelId.trim();

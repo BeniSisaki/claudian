@@ -1,3 +1,5 @@
+import type { ProviderHost } from '../../../core/providers/ProviderHost';
+import type { ProviderCapabilities, ProviderId } from '../../../core/providers/types';
 import type { ChatRuntime } from '../../../core/runtime/ChatRuntime';
 import type {
   ApprovalCallback,
@@ -15,8 +17,6 @@ import type {
   PreparedChatTurn,
   SessionUpdateResult,
 } from '../../../core/runtime/types';
-import type { ProviderCapabilities, ProviderId } from '../../../core/providers/types';
-import type { ProviderHost } from '../../../core/providers/ProviderHost';
 import type {
   ChatMessage,
   Conversation,
@@ -37,15 +37,10 @@ import {
 import { getModosProviderSettings, updateModosProviderSettings } from '../settings';
 import type { ModosProviderState } from '../types';
 import { buildPersistedModosState, getModosState } from '../types';
-import type { ModosCliResolver } from './ModosCliResolver';
-import {
-  ModosHttpClient,
-  ModosHttpError,
-  ModosSseOverflowError,
-} from './ModosHttpClient';
 import type {
-  ModosCompactResponse,
   ModosApprovalConsentResponse,
+  ModosAttachmentMetadata,
+  ModosCompactResponse,
   ModosInterruptTurnResponse,
   ModosRewindResponse,
   ModosRuntimeEvent,
@@ -53,8 +48,12 @@ import type {
   ModosStartTurnResponse,
   ModosThread,
   ModosUsageSnapshot,
-  ModosAttachmentMetadata,
 } from './modos-api-types';
+import {
+  ModosHttpClient,
+  ModosHttpError,
+  ModosSseOverflowError,
+} from './ModosHttpClient';
 import type { ModosServeConnection, ModosServeManager } from './ModosServeProcess';
 import { ModosServeManager as ModosServeManagerClass } from './ModosServeProcess';
 
@@ -96,7 +95,7 @@ export class ModosChatRuntime implements ChatRuntime {
   constructor(private readonly plugin: ProviderHost) {
     const workspace = maybeGetModosWorkspaceServices();
     this.serveManager = workspace?.serveManager
-      ?? new ModosServeManagerClass(plugin, workspace?.cliResolver as ModosCliResolver | null);
+      ?? new ModosServeManagerClass(plugin, workspace?.cliResolver ?? null);
   }
 
   getCapabilities(): Readonly<ProviderCapabilities> {

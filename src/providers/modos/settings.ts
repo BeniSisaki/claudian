@@ -1,12 +1,12 @@
-import type { HostnameCliPaths } from '../../core/types/settings';
 import { getProviderConfig, setProviderConfig } from '../../core/providers/providerConfig';
 import { getProviderEnvironmentVariables } from '../../core/providers/providerEnvironment';
+import type { HostnameCliPaths } from '../../core/types/settings';
 import {
   getHostnameKey,
   getLegacyHostnameKey,
   migrateLegacyHostnameKeyedMap,
 } from '../../utils/env';
-import { normalizeModosDiscoveredModels, type ModosDiscoveredModel } from './models';
+import { type ModosDiscoveredModel,normalizeModosDiscoveredModels } from './models';
 
 export type ModosApprovalPolicy =
   | 'always'

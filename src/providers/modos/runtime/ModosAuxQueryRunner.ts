@@ -3,8 +3,8 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 
 import type { AuxQueryConfig, AuxQueryRunner } from '../../../core/auxiliary/AuxQueryRunner';
-import type { ProviderHost } from '../../../core/providers/ProviderHost';
 import { getRuntimeEnvironmentText } from '../../../core/providers/providerEnvironment';
+import type { ProviderHost } from '../../../core/providers/ProviderHost';
 import { parseEnvironmentVariables } from '../../../utils/env';
 import { getVaultPath } from '../../../utils/path';
 import { resolveWindowsCmdShimSpawnSpec, terminateSpawnedProcess } from '../../../utils/windowsCmdShim';
@@ -59,7 +59,7 @@ export class ModosAuxQueryRunner implements AuxQueryRunner {
       let stderr = '';
       let settled = false;
       const abortSignal = config.abortController?.signal;
-      const timeout = setTimeout(() => {
+      const timeout = window.setTimeout(() => {
         finish(new Error('Modos aux query timed out'));
         terminateSpawnedProcess(proc, 'SIGTERM', spawn, spawnSpec);
       }, AUX_QUERY_TIMEOUT_MS);
@@ -69,7 +69,7 @@ export class ModosAuxQueryRunner implements AuxQueryRunner {
           return;
         }
         settled = true;
-        clearTimeout(timeout);
+        window.clearTimeout(timeout);
         abortSignal?.removeEventListener('abort', onAbort);
         if (error) {
           reject(error);

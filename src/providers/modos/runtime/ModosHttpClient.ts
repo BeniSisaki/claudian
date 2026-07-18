@@ -129,6 +129,10 @@ export class ModosHttpClient {
    * other event but never advance the cursor. Throws ModosSseOverflowError
    * when the server signals replay overflow, and ModosHttpError on
    * auth/not-found failures (both are terminal for the stream).
+   *
+   * Implemented as a single generator without `yield*` delegation on
+   * purpose: the plugin ships with downleveled async generators (ES2018),
+   * where delegation mishandles early consumer return().
    */
   async *streamEvents(
     threadId: string,
@@ -171,9 +175,57 @@ export class ModosHttpClient {
         throw new ModosHttpError('modos SSE response has no body', 0);
       }
 
-      const outcome = yield* this.readEventStream(response.body, signal, (seq) => {
-        cursor = Math.max(cursor, seq);
-      });
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let outcome: 'eof' | 'aborted' | 'overflow' = 'eof';
+      try {
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) {
+            break;
+          }
+          buffer += decoder.decode(value, { stream: true });
+
+          let boundary: number;
+          while ((boundary = buffer.indexOf('\n\n')) !== -1) {
+            const rawFrame = buffer.slice(0, boundary);
+            buffer = buffer.slice(boundary + 2);
+            const frame = parseSseFrame(rawFrame);
+            if (!frame) {
+              continue;
+            }
+            if (frame.kind === 'error' && frame.seq === null) {
+              outcome = 'overflow';
+              break;
+            }
+            if (frame.kind !== 'heartbeat' && frame.seq !== null) {
+              cursor = Math.max(cursor, frame.seq);
+            }
+            yield frame;
+          }
+          if (outcome === 'overflow') {
+            break;
+          }
+          if (signal.aborted) {
+            outcome = 'aborted';
+            break;
+          }
+        }
+      } catch (error) {
+        if (isAbortError(error) || signal.aborted) {
+          outcome = 'aborted';
+        } else {
+          throw error;
+        }
+      } finally {
+        try {
+          await reader.cancel();
+        } catch {
+          // Best effort: the stream is already closing.
+        }
+        reader.releaseLock();
+      }
 
       if (outcome === 'aborted') {
         return;
@@ -189,58 +241,6 @@ export class ModosHttpClient {
       } catch {
         return;
       }
-    }
-  }
-
-  private async *readEventStream(
-    body: ReadableStream<Uint8Array>,
-    signal: AbortSignal,
-    advanceCursor: (seq: number) => void,
-  ): AsyncGenerator<ModosSseEvent, 'eof' | 'aborted' | 'overflow'> {
-    const reader = body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
-    try {
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) {
-          return 'eof';
-        }
-        buffer += decoder.decode(value, { stream: true });
-
-        let boundary: number;
-        while ((boundary = buffer.indexOf('\n\n')) !== -1) {
-          const rawFrame = buffer.slice(0, boundary);
-          buffer = buffer.slice(boundary + 2);
-          const frame = parseSseFrame(rawFrame);
-          if (!frame) {
-            continue;
-          }
-          if (frame.kind === 'error' && frame.seq === null) {
-            return 'overflow';
-          }
-          if (frame.kind !== 'heartbeat' && frame.seq !== null) {
-            advanceCursor(frame.seq);
-          }
-          yield frame;
-        }
-
-        if (signal.aborted) {
-          return 'aborted';
-        }
-      }
-    } catch (error) {
-      if (isAbortError(error) || signal.aborted) {
-        return 'aborted';
-      }
-      throw error;
-    } finally {
-      try {
-        await reader.cancel();
-      } catch {
-        // Best effort: the stream is already closing.
-      }
-      reader.releaseLock();
     }
   }
 }
@@ -295,12 +295,12 @@ function isAbortError(error: unknown): boolean {
 
 function delay(ms: number, signal: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => {
+    const timer = window.setTimeout(() => {
       signal.removeEventListener('abort', onAbort);
       resolve();
     }, ms);
     const onAbort = () => {
-      clearTimeout(timer);
+      window.clearTimeout(timer);
       reject(new Error('aborted'));
     };
     signal.addEventListener('abort', onAbort, { once: true });

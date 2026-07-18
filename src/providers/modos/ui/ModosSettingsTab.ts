@@ -5,6 +5,7 @@ import type { ProviderSettingsTabRenderer } from '../../../core/providers/types'
 import { renderEnvironmentSettingsSection } from '../../../shared/settings/EnvironmentSettingsSection';
 import { getHostnameKey } from '../../../utils/env';
 import { maybeGetModosWorkspaceServices } from '../app/ModosWorkspaceServices';
+import { ModosModelDiscoveryService } from '../runtime/ModosModelDiscoveryService';
 import type { ModosApprovalPolicy, ModosSandboxMode } from '../settings';
 import { getModosProviderSettings, updateModosProviderSettings } from '../settings';
 
@@ -93,7 +94,7 @@ export const modosSettingsTabRenderer: ProviderSettingsTabRenderer = {
             never: 'Never ask',
             always: 'Always ask',
             suggest: 'Suggest',
-          } as Record<ModosApprovalPolicy, string>)
+          })
           .setValue(modosSettings.approvalPolicy)
           .onChange(async (value) => {
             await context.plugin.mutateSettings((settings) => {
@@ -106,7 +107,7 @@ export const modosSettingsTabRenderer: ProviderSettingsTabRenderer = {
 
     new Setting(container)
       .setName('Sandbox mode')
-      .setDesc('Filesystem sandbox applied to MODOS tool execution.')
+      .setDesc('Filesystem sandbox applied to the Modos runtime.')
       .addDropdown((dropdown) =>
         dropdown
           .addOptions({
@@ -114,7 +115,7 @@ export const modosSettingsTabRenderer: ProviderSettingsTabRenderer = {
             'read-only': 'Read only',
             'danger-full-access': 'Full access',
             'external-sandbox': 'External sandbox',
-          } as Record<ModosSandboxMode, string>)
+          })
           .setValue(modosSettings.sandboxMode)
           .onChange(async (value) => {
             await context.plugin.mutateSettings((settings) => {
@@ -122,6 +123,64 @@ export const modosSettingsTabRenderer: ProviderSettingsTabRenderer = {
                 sandboxMode: value as ModosSandboxMode,
               });
             });
+          })
+      );
+
+    new Setting(container).setName('Models').setHeading();
+
+    const statusEl = container.createDiv({ cls: 'claudian-modos-runtime-status' });
+    const discovered = modosSettings.discoveredModels;
+    new Setting(container)
+      .setName('Visible models')
+      .setDesc(
+        discovered.length > 0
+          ? `Discovered from the Modos runtime: ${discovered.map((model) => model.label).join(', ')}`
+          : 'No models discovered yet. Click Discover to launch modos serve and read the configured model.',
+      )
+      .addButton((button) =>
+        button
+          .setButtonText('Discover')
+          .onClick(async () => {
+            button.setDisabled(true).setButtonText('Discovering…');
+            try {
+              const result = await new ModosModelDiscoveryService(context.plugin).discoverModels();
+              statusEl.setText(
+                result.kind === 'completed'
+                  ? result.models.length > 0
+                    ? `Discovered: ${result.models.map((model) => model.label).join(', ')}`
+                    : 'Modos serve is running but reported no model.'
+                  : `Discovery failed: ${result.diagnostics ?? 'unknown error'}`,
+              );
+              context.refreshModelSelectors();
+            } finally {
+              button.setDisabled(false).setButtonText('Discover');
+            }
+          })
+      );
+
+    new Setting(container).setName('Runtime').setHeading();
+
+    const serveManager = workspace?.serveManager;
+    statusEl.setText(
+      serveManager?.isRunning()
+        ? `modos serve is running on ${serveManager.getConnection()?.baseUrl ?? 'loopback'}.`
+        : 'modos serve is not running yet. It starts on the first chat turn or Discover click.',
+    );
+
+    new Setting(container)
+      .setName('Restart runtime')
+      .setDesc('Stops the shared Modos serve process. It relaunches on the next chat turn.')
+      .addButton((button) =>
+        button
+          .setButtonText('Restart')
+          .onClick(async () => {
+            button.setDisabled(true);
+            try {
+              await serveManager?.shutdown();
+              statusEl.setText('Modos serve stopped. It relaunches on the next chat turn.');
+            } finally {
+              button.setDisabled(false);
+            }
           })
       );
 
