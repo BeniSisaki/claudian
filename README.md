@@ -28,10 +28,34 @@ What you get compared to driving MODOS through the Pi provider (`modos rpc`):
 3. Open Settings → Claudian → **Modos** tab: enable the provider, set the CLI path if `modos` is not on PATH, and add provider environment variables (e.g. `DEEPSEEK_API_KEY`, `MODOS_MODEL`, `MODOS_BASE_URL`).
 4. Click **Discover** to launch the runtime and read the configured model, then chat in the sidebar.
 
+### Connection modes
+
+The **Connection** section of the Modos tab offers two modes:
+
+- **Dedicated runtime (default)** — the plugin spawns its own `modos serve` child per vault (own data directory, own model config). The MODOS desktop app does not need to run.
+- **Pair with the running MODOS app** — generate a pairing code in the desktop app (Settings → Connect phone), paste it into the plugin, and the plugin drives the app's serve process via `POST /v1/devices/pair`. Threads, credentials, and models are **shared with the desktop app**: a conversation started in Obsidian appears in the app's thread list and vice versa. The desktop app must be running while you chat.
+
+### Bidirectional integration (Obsidian ↔ MODOS)
+
+The plugin drives MODOS (forward), and MODOS can call back into Obsidian through the **Local REST API with MCP** plugin: register it as an MCP server in the MODOS config (`capabilities.mcp.servers`):
+
+```json
+"obsidian": {
+  "enabled": true,
+  "transport": "streamable-http",
+  "url": "http://127.0.0.1:27123/mcp",
+  "headers": { "Authorization": "Bearer <local-rest-api key>" },
+  "trustScope": "user"
+}
+```
+
+The agent then discovers `vault_read/write/search`, `active_file_get_path`, `command_execute`, etc. through `mcp_search` and invokes them with `mcp_call`. Note: `mcp_call` is a `command_execution` tool and is only advertised when the sandbox mode is `danger-full-access` (Full access).
+
 ### Notes and limitations
 
-- Approval policy / sandbox mode are plugin settings passed to `modos serve` at launch; `Ask before tools` surfaces approvals inline in chat.
-- v1: model listing reports the runtime's configured default model; extension-routed providers, plan mode, and MCP server selection are not wired yet.
+- Approval policy / sandbox mode are plugin settings passed to `modos serve` at launch in dedicated mode; in paired mode the desktop app's own policy applies.
+- `mcp_call` and other `command_execution` tools require the `danger-full-access` sandbox to be advertised to the model.
+- Model listing reports the runtime default model plus configured provider routes; extension-routed providers, plan mode, and MCP server selection UI are not wired yet.
 - The auxiliary services (title generation, inline edit, instruction refine) run through one-shot `modos run` processes, independent from the shared serve process.
 
 ## Features & Usage
