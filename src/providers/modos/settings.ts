@@ -22,16 +22,31 @@ export type ModosSandboxMode =
   | 'danger-full-access'
   | 'external-sandbox';
 
+/**
+ * How the plugin reaches a MODOS runtime:
+ * - `managed`: spawn a dedicated `modos serve` child (own data dir).
+ * - `paired`: drive the already-running MODOS desktop app's serve process
+ *   with a paired device token (shared threads/credentials with the app).
+ */
+export type ModosConnectionMode = 'managed' | 'paired';
+
 export interface PersistedModosProviderSettings {
   approvalPolicy: ModosApprovalPolicy;
   cliPath: string;
   cliPathsByHost: HostnameCliPaths;
+  connectionMode: ModosConnectionMode;
   /** 0 means the runtime/model default is used for usage display. */
   contextWindowTokens: number;
   dataDir: string;
   discoveredModels: ModosDiscoveredModel[];
   enabled: boolean;
   environmentVariables: string;
+  /** Paired device id as reported by `POST /v1/devices/pair`. */
+  pairedDeviceId: string;
+  /** Plaintext device token (returned exactly once at pair time). */
+  pairedDeviceToken: string;
+  pairedHost: string;
+  pairedPort: number;
   sandboxMode: ModosSandboxMode;
   /** Encoded selection id (`modos/<modelId>`); '' follows the server default. */
   selectedModel: string;
@@ -43,11 +58,16 @@ export const DEFAULT_MODOS_PROVIDER_SETTINGS: Readonly<PersistedModosProviderSet
   approvalPolicy: 'on-request',
   cliPath: '',
   cliPathsByHost: {},
+  connectionMode: 'managed',
   contextWindowTokens: 0,
   dataDir: '',
   discoveredModels: [],
   enabled: false,
   environmentVariables: '',
+  pairedDeviceId: '',
+  pairedDeviceToken: '',
+  pairedHost: '127.0.0.1',
+  pairedPort: 18899,
   sandboxMode: 'workspace-write',
   selectedModel: '',
 });
@@ -109,6 +129,7 @@ export function getModosProviderSettings(settings: Record<string, unknown>): Mod
     approvalPolicy: normalizeApprovalPolicy(config.approvalPolicy),
     cliPath: (config.cliPath as string | undefined) ?? DEFAULT_MODOS_PROVIDER_SETTINGS.cliPath,
     cliPathsByHost,
+    connectionMode: config.connectionMode === 'paired' ? 'paired' : 'managed',
     contextWindowTokens:
       typeof config.contextWindowTokens === 'number'
       && Number.isFinite(config.contextWindowTokens)
@@ -121,6 +142,17 @@ export function getModosProviderSettings(settings: Record<string, unknown>): Mod
     environmentVariables: (config.environmentVariables as string | undefined)
       ?? getProviderEnvironmentVariables(settings, 'modos')
       ?? DEFAULT_MODOS_PROVIDER_SETTINGS.environmentVariables,
+    pairedDeviceId: typeof config.pairedDeviceId === 'string' ? config.pairedDeviceId.trim() : '',
+    pairedDeviceToken: typeof config.pairedDeviceToken === 'string' ? config.pairedDeviceToken : '',
+    pairedHost: typeof config.pairedHost === 'string' && config.pairedHost.trim()
+      ? config.pairedHost.trim()
+      : DEFAULT_MODOS_PROVIDER_SETTINGS.pairedHost,
+    pairedPort: typeof config.pairedPort === 'number'
+      && Number.isInteger(config.pairedPort)
+      && config.pairedPort > 0
+      && config.pairedPort <= 65_535
+      ? config.pairedPort
+      : DEFAULT_MODOS_PROVIDER_SETTINGS.pairedPort,
     sandboxMode: normalizeSandboxMode(config.sandboxMode),
     selectedModel: typeof config.selectedModel === 'string' ? config.selectedModel.trim() : '',
   };
@@ -170,11 +202,16 @@ export function updateModosProviderSettings(
     approvalPolicy: next.approvalPolicy,
     cliPath: next.cliPath,
     cliPathsByHost: next.cliPathsByHost,
+    connectionMode: next.connectionMode,
     contextWindowTokens: next.contextWindowTokens,
     dataDir: next.dataDir,
     discoveredModels: next.discoveredModels,
     enabled: next.enabled,
     environmentVariables: next.environmentVariables,
+    pairedDeviceId: next.pairedDeviceId,
+    pairedDeviceToken: next.pairedDeviceToken,
+    pairedHost: next.pairedHost,
+    pairedPort: next.pairedPort,
     sandboxMode: next.sandboxMode,
     selectedModel: next.selectedModel,
   });

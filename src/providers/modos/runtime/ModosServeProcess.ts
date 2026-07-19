@@ -66,6 +66,11 @@ export class ModosServeManager {
   async ensureReady(): Promise<ModosServeConnection> {
     const settings = this.plugin.settings as unknown as Record<string, unknown>;
     const modosSettings = getModosProviderSettings(settings);
+
+    if (modosSettings.connectionMode === 'paired') {
+      return this.ensurePairedConnection(modosSettings);
+    }
+
     const command = (await this.plugin.getResolvedProviderCliPath('modos'))
       ?? (await this.cliResolver?.resolveFromSettings(settings))
       ?? 'modos';
@@ -99,6 +104,38 @@ export class ModosServeManager {
     } finally {
       this.starting = null;
     }
+  }
+
+  /**
+   * Paired mode: drive the already-running MODOS desktop app's serve with a
+   * paired device token. No child process is spawned; any managed process
+   * left over from managed mode is stopped. The app's `/health` endpoint is
+   * unauthenticated, so it doubles as the "is the app running" probe.
+   */
+  private async ensurePairedConnection(
+    modosSettings: ReturnType<typeof getModosProviderSettings>,
+  ): Promise<ModosServeConnection> {
+    await this.shutdown();
+    if (!modosSettings.pairedDeviceToken) {
+      throw new Error('No paired MODOS device. Pair with the desktop app first (Modos settings → Connection).');
+    }
+    const host = modosSettings.pairedHost;
+    const port = modosSettings.pairedPort;
+    const baseUrl = `http://${host}:${port}`;
+    try {
+      const response = await fetch(`${baseUrl}/health`, {
+        signal: AbortSignal.timeout(2_000),
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+    } catch (error) {
+      throw new Error(
+        `The MODOS app is not reachable at ${baseUrl}. Start the desktop app, or switch back to the managed runtime`,
+        { cause: error },
+      );
+    }
+    return { baseUrl, host, port, token: modosSettings.pairedDeviceToken };
   }
 
   async shutdown(): Promise<void> {

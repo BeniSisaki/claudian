@@ -504,6 +504,24 @@
         "name": "Modos environment variables",
         "desc": "Environment variables passed only to Modos (e.g. `DEEPSEEK_API_KEY`, `MODOS_MODEL`).",
         "placeholder": "DEEPSEEK_API_KEY=sk-..."
+      },
+      "connection": {
+        "heading": "Connection",
+        "mode": "Mode",
+        "modeDesc": "Run a dedicated modos serve for Obsidian, or pair with the already-running MODOS desktop app and share its threads, credentials and models.",
+        "modeManaged": "Dedicated runtime (spawn modos serve)",
+        "modePaired": "Pair with the running MODOS app",
+        "host": "Host",
+        "port": "Port",
+        "pairingCode": "Pairing code",
+        "pairingCodeDesc": "Generate a pairing code in the MODOS desktop app (Settings → Connect phone) and paste it here.",
+        "pair": "Pair",
+        "pairing": "Pairing…",
+        "paired": "Paired as device {deviceId}. Threads and credentials are shared with the MODOS app.",
+        "pairFailed": "Pairing failed: {error}",
+        "appUnreachable": "MODOS app not reachable at {url}. Start the desktop app first.",
+        "unpair": "Unpair",
+        "unpairDesc": "Forget the device token and switch back to the dedicated runtime. To revoke access, also remove the device in the MODOS app."
       }
     }
   }

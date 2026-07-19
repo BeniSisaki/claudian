@@ -504,6 +504,24 @@
         "name": "Modos 环境变量",
         "desc": "仅传递给 Modos 的环境变量（如 `DEEPSEEK_API_KEY`、`MODOS_MODEL`）。",
         "placeholder": "DEEPSEEK_API_KEY=sk-..."
+      },
+      "connection": {
+        "heading": "连接",
+        "mode": "连接模式",
+        "modeDesc": "为 Obsidian 启动独立的 modos serve，或与正在运行的 MODOS 桌面应用配对，共享其会话、凭证与模型。",
+        "modeManaged": "独立运行时（启动 modos serve）",
+        "modePaired": "与正在运行的 MODOS 应用配对",
+        "host": "主机",
+        "port": "端口",
+        "pairingCode": "配对码",
+        "pairingCodeDesc": "在 MODOS 桌面应用中生成配对码（设置 → 连接手机），粘贴到这里。",
+        "pair": "配对",
+        "pairing": "配对中…",
+        "paired": "已配对为设备 {deviceId}，会话与凭证和 MODOS 应用共享。",
+        "pairFailed": "配对失败：{error}",
+        "appUnreachable": "无法连接 {url} 上的 MODOS 应用，请先启动桌面应用。",
+        "unpair": "解除配对",
+        "unpairDesc": "忘记设备 token 并切回独立运行时。如需吊销访问权限，请在 MODOS 应用的设备列表中移除该设备。"
       }
     }
   }
