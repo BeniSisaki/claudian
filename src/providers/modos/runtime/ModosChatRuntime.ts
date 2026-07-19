@@ -156,6 +156,9 @@ export class ModosChatRuntime implements ChatRuntime {
       if (this.forkSource) {
         await this.materializePendingFork();
       }
+      if (this.threadId) {
+        await this.verifyThreadStillExists();
+      }
       if (!this.threadId && options?.allowSessionCreation !== false) {
         await this.createThread();
       }
@@ -164,6 +167,30 @@ export class ModosChatRuntime implements ChatRuntime {
     } catch {
       this.notifyReadyState();
       return false;
+    }
+  }
+
+  /**
+   * Threads live inside the runtime's data dir, so a threadId persisted in
+   * providerState goes stale whenever the target runtime changes (managed ↔
+   * paired switch, data-dir change, thread deleted elsewhere). A missing
+   * thread self-heals into a fresh thread instead of failing the turn.
+   */
+  private async verifyThreadStillExists(): Promise<void> {
+    const client = this.client;
+    const threadId = this.threadId;
+    if (!client || !threadId) {
+      return;
+    }
+    try {
+      await client.get<ModosThread>(`/v1/threads/${encodeURIComponent(threadId)}`);
+    } catch (error) {
+      if (error instanceof ModosHttpError && error.status === 404) {
+        this.threadId = null;
+        this.sessionInvalidated = true;
+        return;
+      }
+      throw error;
     }
   }
 
